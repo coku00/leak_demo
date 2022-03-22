@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_leaks/leaks_manager.dart';
 import 'package:flutter_leaks/object_util.dart';
 import 'package:flutter_leaks/service_util.dart';
 import 'package:vm_service/vm_service.dart';
@@ -33,46 +34,18 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-
-
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   final data = [];
 
   Future<void> _incrementCounter() async {
-
-    Singleton().value = Leak(this);
+    Singleton().value = Test(this);
 
     Expando? expando = Expando();
     expando[Singleton().value] = true;
-    //模拟释放资源
-   // Singleton().value = null;
-    await gc();
-
-    final weakPropertyKeys = await getWeakPropertyKeys(expando);
-    //
+    LeaksTask(expando).checkLeak();
     expando = null;
-    weakPropertyKeys.forEach((element) async {
-
-       getRetainingPath(element.id!).then((path){
-         print('path length = ${path.length}');
-
-         path.elements?.forEach((p) {
-           print('${p.value}');
-           if(p.value is InstanceRef){
-             InstanceRef instanceRef = p.value as InstanceRef;
-             print('内存泄漏链路 ---->  ${instanceRef}');
-           }else if(p.value is FieldRef){
-             FieldRef fieldRef = p.value as FieldRef;
-             print('内存泄漏链路 ---->  ${fieldRef}');
-           }
-
-         });
-       });
-    });
-   // print('weakPropertyKeys = $weakPropertyKey');
-
   }
 
   @override
@@ -110,7 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
   }
 }
 
@@ -124,7 +96,9 @@ class Singleton {
   dynamic value;
 }
 
-class Leak{
+class Test {
   dynamic obj;
-  Leak(this.obj);
+
+  Test(this.obj);
 }
+

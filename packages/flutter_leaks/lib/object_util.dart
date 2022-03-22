@@ -80,35 +80,50 @@ Future<Type> getObjectOfType<Type extends Obj?>(String objectId,
   return result as Type;
 }
 
-Future<List<InstanceRef>> getWeakPropertyKeys(Expando expando) async {
+Future<List<InstanceRef>> getWeakKeyRefs(Expando expando) async {
   List<InstanceRef> instanceRefs = [];
-  final weakPropertyRef = await _getWeakProperty(expando);
-  final weakPropertyId = weakPropertyRef?.json?['id'];
-  Obj? weakPropertyObj = await getObjectOfType(weakPropertyId);
-  if (weakPropertyObj != null) {
-    final weakPropertyInstance = Instance.parse(weakPropertyObj.json);
-    if(weakPropertyInstance!.propertyKey != null){
-      instanceRefs.add(weakPropertyInstance.propertyKey!);
+  final weakPropertyRefs = await _getWeakProperty(expando);
+
+  for (var i = 0; i < weakPropertyRefs.length; i++) {
+    final weakPropertyRef = weakPropertyRefs[i];
+    final weakPropertyId = weakPropertyRef.json?['id'];
+    Obj? weakPropertyObj = await getObjectOfType(weakPropertyId);
+
+    if (weakPropertyObj != null) {
+      final weakPropertyInstance = Instance.parse(weakPropertyObj.json);
+      if (weakPropertyInstance!.propertyKey != null) {
+        instanceRefs.add(weakPropertyInstance.propertyKey!);
+      }
     }
   }
+
   return instanceRefs;
 }
 
-Future<InstanceRef?> getWeakPropertyValue(Expando expando) async {
-  final weakPropertyRef = await _getWeakProperty(expando);
-  final weakPropertyId = weakPropertyRef?.json?['id'];
-  Obj? weakPropertyObj = await getObjectOfType(weakPropertyId);
-  if (weakPropertyObj != null) {
-    final weakPropertyInstance = Instance.parse(weakPropertyObj.json);
-    return weakPropertyInstance!.propertyValue;
+Future<List<InstanceRef>> getWeakValueRefs(Expando expando) async {
+  List<InstanceRef> instanceRefs = [];
+  final weakPropertyRefs = await _getWeakProperty(expando);
+
+  for (var i = 0; i < weakPropertyRefs.length; i++) {
+    final weakPropertyRef = weakPropertyRefs[i];
+    final weakPropertyId = weakPropertyRef.json?['id'];
+    Obj? weakPropertyObj = await getObjectOfType(weakPropertyId);
+
+    if (weakPropertyObj != null) {
+      final weakPropertyInstance = Instance.parse(weakPropertyObj.json);
+      if (weakPropertyInstance!.propertyKey != null) {
+        instanceRefs.add(weakPropertyInstance.propertyValue!);
+      }
+    }
   }
-  return null;
+
+  return instanceRefs;
 }
 
-Future<InstanceRef?> _getWeakProperty(Expando expando) async {
+Future<List<InstanceRef>> _getWeakProperty(Expando expando) async {
   String expandoId = await obj2Id(expando);
   Instance expandoObj = await getObjectOfType(expandoId);
-
+  List<InstanceRef> instanceRefs = [];
   for (var i = 0; i < expandoObj.fields!.length; i++) {
     var filed = expandoObj.fields![i];
     if (filed.decl?.name == '_data') {
@@ -119,14 +134,14 @@ Future<InstanceRef?> _getWeakProperty(Expando expando) async {
           var weakProperty = _data.elements![j];
           if (weakProperty is InstanceRef) {
             InstanceRef weakPropertyRef = weakProperty;
-            return weakPropertyRef;
+            instanceRefs.add(weakPropertyRef);
           }
         }
       }
     }
   }
 
-  return null;
+  return instanceRefs;
 }
 
 Future<RetainingPath> getRetainingPath(String objId,
