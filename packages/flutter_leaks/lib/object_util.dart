@@ -18,15 +18,11 @@ dynamic key2Obj(String key) {
   return _objCache[key];
 }
 
-String _getIsolateId({sdk.Isolate? sdkIsolate}) {
-  sdk.Isolate currentIsolate = sdkIsolate ?? sdk.Isolate.current;
-  String isolateId = Service.getIsolateID(currentIsolate)!;
-  return isolateId;
-}
+
 
 // dart对象转vm中的id
 Future<String> obj2Id(dynamic obj, {sdk.Isolate? sdkIsolate}) async {
-  String isolateId = _getIsolateId(sdkIsolate: sdkIsolate);
+  String isolateId = getIsolateId(sdkIsolate: sdkIsolate);
   VmService vmService = await getVmService();
   Isolate isolate = await vmService.getIsolate(isolateId);
 
@@ -61,7 +57,7 @@ Future<String> obj2Id(dynamic obj, {sdk.Isolate? sdkIsolate}) async {
 }
 
 Future<AllocationProfile> gc({sdk.Isolate? sdkIsolate}) async {
-  String isolateId = _getIsolateId(sdkIsolate: sdkIsolate);
+  String isolateId = getIsolateId(sdkIsolate: sdkIsolate);
   VmService vmService = await getVmService();
   return await vmService.getAllocationProfile(isolateId, gc: true);
 }

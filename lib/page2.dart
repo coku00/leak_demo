@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'expando_demo.dart';
@@ -5,7 +7,7 @@ import 'expando_demo.dart';
 class Page2 extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    _widgets.add(this);
+    //  _widgets.add(this);
     return _Page2State();
   }
 }
@@ -18,11 +20,18 @@ class _Page2State extends State<Page2> {
   void initState() {
     super.initState();
     // _states.add(this);
-    print('initState');
+    // testFunc();
+  }
+
+  void testFunc() {
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      print('initState $this');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    _widgets.add(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('page2'),

@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
-
+import 'dart:isolate' as sdk;
 VmService? _vmService;
 
 Future<void> _initVmService() async {
@@ -18,7 +18,14 @@ Future<VmService> getVmService() async {
   if (_vmService == null) {
     await _initVmService();
   }
+
   return _vmService!;
+}
+
+String getIsolateId({sdk.Isolate? sdkIsolate}) {
+  sdk.Isolate currentIsolate = sdkIsolate ?? sdk.Isolate.current;
+  String isolateId = Service.getIsolateID(currentIsolate)!;
+  return isolateId;
 }
 
 Future<Stream<Event>> onGCEvent() async {
