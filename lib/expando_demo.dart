@@ -26,7 +26,7 @@ main() {
   ));
 }
 
-const int _defaultCheckLeakDelay = 500;
+const int _defaultCheckLeakDelay = 15;
 
 class LeakObserver extends NavigatorObserver {
   final ShouldAddedRoute? shouldCheck;
@@ -88,7 +88,7 @@ class LeakObserver extends NavigatorObserver {
   void _remove(Route route) {
     Element? element = _getElementByRoute(route);
     if (element != null) {
-        Future.delayed(Duration(seconds: 1), () async {
+        Future.delayed(Duration(seconds: _defaultCheckLeakDelay), () async {
            LeaksTask(_widgetRefMap.remove(_generateKey(route))).checkLeak();
            if(element is StatefulElement){
              LeaksTask(_stateRefMap.remove(_generateKey(route))).checkLeak();

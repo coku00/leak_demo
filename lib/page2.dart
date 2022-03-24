@@ -14,6 +14,7 @@ class Page2 extends StatefulWidget {
 
 final List _states = [];
 final List _widgets = [];
+final List _elements = [];
 
 class _Page2State extends State<Page2> {
   @override
@@ -31,7 +32,7 @@ class _Page2State extends State<Page2> {
 
   @override
   Widget build(BuildContext context) {
-    _widgets.add(context);
+    _elements.add(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('page2'),

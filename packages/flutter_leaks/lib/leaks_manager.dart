@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:vm_service/vm_service.dart';
 
@@ -24,6 +26,11 @@ class LeaksManager {
   void _addObject(Object object) {}
 
   void checkLeak() {}
+
+  StreamController<LeakNode> _onLeakedStreamController = StreamController.broadcast();
+
+  Stream<LeakNode> get onLeakedStream => _onLeakedStreamController.stream;
+
 }
 
 class LeaksNavigatorObserver extends NavigatorObserver {
@@ -70,13 +77,14 @@ class LeaksTask {
     }
     for (int i = 0; i < weakPropertyKeys.length; i++) {
       InstanceRef instanceRef = weakPropertyKeys[i];
-
+      print('checkLeak instanceRef = $instanceRef');
       RetainingPath retainingPath = await getRetainingPath(instanceRef.id!);
       LeakNode? _leakInfoHead;
       LeakNode? pre;
 
       for (var i = 0; i < retainingPath.elements!.length; i++) {
         RetainingObject p = retainingPath.elements![i];
+        print('p = $p');
         LeakNode current = LeakNode();
         await _paresRef(p.value!, current);
 
@@ -91,7 +99,7 @@ class LeaksTask {
 
       if (_leakInfoHead != null) {
         leakNodes?.add(_leakInfoHead);
-        print('发现内存泄露 : ${reverse(_leakInfoHead)}');
+        LeaksManager()._onLeakedStreamController.add(_leakInfoHead);
       }
     }
 
