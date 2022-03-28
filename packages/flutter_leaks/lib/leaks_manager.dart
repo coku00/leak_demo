@@ -92,7 +92,7 @@ class LeaksTask {
         RetainingObject p = retainingPath.elements![i];
 
         LeakNode current = LeakNode();
-        bool isConst = await _paresRef(p.value!, current);
+        bool isConst = await _paresRef(p.value!, p.parentField, current);
         print('checkLeak isConst = $isConst');
         if (isConst) {
           break;
@@ -119,7 +119,9 @@ class LeaksTask {
   }
 }
 
-Future<bool> _paresRef(ObjRef objRef, LeakNode leakNode) async {
+Future<bool> _paresRef(
+    ObjRef objRef, String? parentField, LeakNode leakNode) async {
+  leakNode.parentField = parentField;
   switch (objRef.runtimeType) {
     case ClassRef:
       ClassRef classRef = objRef as ClassRef;
@@ -132,7 +134,7 @@ Future<bool> _paresRef(ObjRef objRef, LeakNode leakNode) async {
       leakNode.id = codeRef.id;
       leakNode.name = codeRef.name;
       leakNode.isRoot = false;
-     // Code d = await getObjectOfType(codeRef.id!);
+      // Code d = await getObjectOfType(codeRef.id!);
       return true;
     case ContextRef:
       ContextRef contextRef = objRef as ContextRef;
@@ -264,6 +266,8 @@ class LeakNode {
   String? name;
 
   String? type;
+
+  String? parentField;
 
   CodeInfo? codeInfo;
 
