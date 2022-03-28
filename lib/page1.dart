@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:leak_demo/page2.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+import 'closure_page.dart';
 import 'expando_demo.dart';
 
 class Page1 extends StatefulWidget {
@@ -29,28 +31,46 @@ class _Page1State extends State<Page1> with WidgetsBindingObserver {
       appBar: AppBar(
         title: Text('page1'),
       ),
-      body: Center(
-        child: GestureDetector(
-          onTap: () {
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (BuildContext context) {
-              return Page2();
-            }));
-          },
-          child: VisibilityDetector(
-            onVisibilityChanged: (VisibilityInfo info) {
-
-            },
-            key: ValueKey('page1'),
-            child: Container(
-              padding: EdgeInsets.all(50),
-              color: Colors.blue,
-              child: Text('go page2'),
-            ),
-          ),
+      body: Container(
+          child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomWidget('page2'),
+            CustomWidget('closure'),
+            CustomWidget('const'),
+          ],
         ),
-      ),
+      )),
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+
+class CustomWidget extends StatelessWidget{
+  final String routerName;
+  CustomWidget(this.routerName);
+  @override
+  Widget build(BuildContext context) {
+   return Container(
+     color: Colors.yellow,
+     height: 40,
+     width: 100,
+     margin: EdgeInsets.only(top: 20,bottom: 20),
+     child: GestureDetector(
+       onTap: () {
+         Navigator.of(context).pushNamed(routerName);
+       },
+       child: Container(
+           color: Colors.yellow,
+           height: 40,
+           width: 100,
+           child: Center(
+             child: Text('go $routerName'),
+           )),
+     ),
+   );
+  }
+
 }

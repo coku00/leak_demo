@@ -27,10 +27,10 @@ class LeaksManager {
 
   void checkLeak() {}
 
-  StreamController<LeakNode> _onLeakedStreamController = StreamController.broadcast();
+  StreamController<LeakNode> _onLeakedStreamController =
+      StreamController.broadcast();
 
   Stream<LeakNode> get onLeakedStream => _onLeakedStreamController.stream;
-
 }
 
 class LeaksNavigatorObserver extends NavigatorObserver {
@@ -60,7 +60,7 @@ class LeaksTask {
 
   LeaksTask(this.expando);
 
-  Future<List<LeakNode>?> checkLeak() async {
+  Future<List<LeakNode>?> checkLeak({String? tag}) async {
     List<LeakNode>? leakNodes;
     if (expando == null) {
       print('checkLeak expando = null');
@@ -68,13 +68,19 @@ class LeaksTask {
     }
     await gc();
 
-    final weakPropertyKeys = await getWeakKeyRefs(expando!);
-    expando = null;
+    var weakPropertyKeys = await getWeakKeyRefs(expando!);
+
     if (weakPropertyKeys.isNotEmpty) {
       print(
-          'checkLeak weakPropertyKeys.isNotEmpty length = ${weakPropertyKeys.length}');
-      leakNodes = [];
+          '${tag};checkLeak weakPropertyKeys.isNotEmpty length = ${weakPropertyKeys.length}');
+
+      await gc();
+
+      await Future.delayed(Duration(seconds: 15), () {});
     }
+
+    expando = null;
+
     for (int i = 0; i < weakPropertyKeys.length; i++) {
       InstanceRef instanceRef = weakPropertyKeys[i];
       print('checkLeak instanceRef = $instanceRef');
@@ -84,9 +90,15 @@ class LeaksTask {
 
       for (var i = 0; i < retainingPath.elements!.length; i++) {
         RetainingObject p = retainingPath.elements![i];
-        print('p = $p');
+
         LeakNode current = LeakNode();
-        await _paresRef(p.value!, current);
+        bool isConst = await _paresRef(p.value!, current);
+        print('checkLeak isConst = $isConst');
+        if (isConst) {
+          break;
+        }
+
+        print('checkLeak p = ${p.toJson()}');
 
         if (_leakInfoHead == null) {
           _leakInfoHead = current;
@@ -107,32 +119,33 @@ class LeaksTask {
   }
 }
 
-Future<void> _paresRef(ObjRef objRef, LeakNode leakNode) async {
+Future<bool> _paresRef(ObjRef objRef, LeakNode leakNode) async {
   switch (objRef.runtimeType) {
     case ClassRef:
       ClassRef classRef = objRef as ClassRef;
       leakNode.id = classRef.id;
       leakNode.name = classRef.name;
       leakNode.isRoot = false;
-      break;
+      return false;
     case CodeRef:
       CodeRef codeRef = objRef as CodeRef;
       leakNode.id = codeRef.id;
       leakNode.name = codeRef.name;
       leakNode.isRoot = false;
-      break;
+     // Code d = await getObjectOfType(codeRef.id!);
+      return true;
     case ContextRef:
       ContextRef contextRef = objRef as ContextRef;
       leakNode.id = contextRef.id;
       leakNode.name = 'context';
       leakNode.isRoot = false;
-      break;
+      return false;
     case ErrorRef:
       ErrorRef errorRef = objRef as ErrorRef;
       leakNode.id = errorRef.id;
       leakNode.name = 'error';
       leakNode.isRoot = false;
-      break;
+      return true;
     case FieldRef:
       FieldRef fieldRef = objRef as FieldRef;
       leakNode.id = fieldRef.id;
@@ -142,33 +155,33 @@ Future<void> _paresRef(ObjRef objRef, LeakNode leakNode) async {
       Field field = await getObjectOfType(objRef.id!);
       leakNode.codeInfo = await _getFieldCode(field);
 
-      break;
+      return false;
     case FuncRef:
       FuncRef funcRef = objRef as FuncRef;
       leakNode.id = funcRef.id;
       leakNode.name = funcRef.name;
       leakNode.isRoot = false;
-      break;
+      return false;
     case InstanceRef:
       InstanceRef instanceRef = objRef as InstanceRef;
       leakNode.id = instanceRef.id;
       leakNode.name = instanceRef.name ?? instanceRef.classRef?.name;
       leakNode.isRoot = false;
-      break;
+      return false;
     case ScriptRef:
       ScriptRef scriptRef = objRef as ScriptRef;
       leakNode.id = scriptRef.id;
       leakNode.name = "script";
       leakNode.isRoot = false;
-      break;
+      return false;
     case TypeArgumentsRef:
       TypeArgumentsRef typeArgumentsRef = objRef as TypeArgumentsRef;
       leakNode.id = typeArgumentsRef.id;
       leakNode.name = typeArgumentsRef.name;
       leakNode.isRoot = false;
-      break;
+      return false;
     default:
-      break;
+      return false;
   }
 }
 

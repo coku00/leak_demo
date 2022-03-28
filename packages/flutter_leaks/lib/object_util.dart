@@ -145,5 +145,5 @@ Future<RetainingPath> getRetainingPath(String objId,
   sdk.Isolate currentIsolate = sdkIsolate ?? sdk.Isolate.current;
   String isolateId = Service.getIsolateID(currentIsolate)!;
   VmService vmService = await getVmService();
-  return vmService.getRetainingPath(isolateId, objId, limit ?? 300);
+  return vmService.getRetainingPath(isolateId, objId, limit ?? 3000);
 }

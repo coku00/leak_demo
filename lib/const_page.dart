@@ -1,41 +1,26 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import 'expando_demo.dart';
+class ConstPage extends StatefulWidget {
+  const ConstPage();
 
-final List _states = [];
-
-final List _widgets = [];
-
-final List _elements = [];
-
-
-class Page2 extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    _widgets.add(this);
-    return _Page2State();
+    return _ConstState();
   }
 }
 
-class _Page2State extends State<Page2> {
-
-
+class _ConstState extends State<ConstPage> {
   @override
   void initState() {
     super.initState();
-    _states.add(this);
   }
-
-  void testFunc() {}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
-        title: Text('page2'),
+        title: Text('ConstPage'),
       ),
       body: Center(
         child: GestureDetector(

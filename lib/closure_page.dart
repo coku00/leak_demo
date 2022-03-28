@@ -1,31 +1,30 @@
-import 'dart:async';
+
+
+
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import 'expando_demo.dart';
+final List<TestFunction?> _functions = [];
 
-final List _states = [];
+typedef TestFunction = int Function();
 
-final List _widgets = [];
-
-final List _elements = [];
-
-
-class Page2 extends StatefulWidget {
+class ClosurePage extends StatefulWidget {
+  const ClosurePage();
   @override
   State<StatefulWidget> createState() {
-    _widgets.add(this);
-    return _Page2State();
+    return _ClosureState();
   }
 }
-
-class _Page2State extends State<Page2> {
-
+class _ClosureState extends State<ClosurePage> {
 
   @override
   void initState() {
     super.initState();
-    _states.add(this);
+    _functions.add(() {
+  //    testFunc();
+      return 1;
+    });
   }
 
   void testFunc() {}
@@ -35,7 +34,7 @@ class _Page2State extends State<Page2> {
     return Scaffold(
       appBar: AppBar(
 
-        title: Text('page2'),
+        title: Text('ClosurePage'),
       ),
       body: Center(
         child: GestureDetector(

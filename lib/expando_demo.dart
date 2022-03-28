@@ -1,32 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_leaks/leaks_manager.dart';
+import 'package:flutter_leaks/object_util.dart';
 import 'package:leak_demo/page1.dart';
+import 'package:leak_demo/page2.dart';
 import 'package:leak_detector/leak_detector.dart';
+
+import 'closure_page.dart';
+import 'const_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 main() {
-  // LeakDetector().init();
-  // LeakDetector().onLeakedStream.listen((LeakedInfo info) {
-  //   print(info);
-  //   //print to console
-  //   info.retainingPath.forEach((node) => print(node));
-  //   //show preview page
-  //   showLeakedInfoPage(navigatorKey.currentContext!, info);
-  // });
   runApp(MaterialApp(
     navigatorKey: navigatorKey,
     navigatorObservers: [LeakObserver()],
+    routes: <String, WidgetBuilder>{
+      "page1": (BuildContext context) {
+        return Page1();
+      },
+      "page2": (BuildContext context) {
+        return Page2();
+      },
+      "closure": (BuildContext context) {
+        return ClosurePage();
+      },
+
+      "const": (BuildContext context) {
+        return const ConstPage();
+      },
+
+    },
     title: 'Expand',
     theme: ThemeData(
       primarySwatch: Colors.blue,
     ),
-    home: Page1(),
+    initialRoute: 'page1',
   ));
 }
 
-const int _defaultCheckLeakDelay = 15;
+const int _defaultCheckLeakDelay = 30;
 
 class LeakObserver extends NavigatorObserver {
   final ShouldAddedRoute? shouldCheck;
@@ -67,37 +80,38 @@ class LeakObserver extends NavigatorObserver {
 
   ///add a object to LeakDetector
   void _add(Route route) {
-    route.didPush().then((value){
+    route.didPush().then((value) {
       Element? element = _getElementByRoute(route);
       if (element != null) {
         print('_remove route hashCode ${route.hashCode}');
         Expando expando = Expando('${element.widget}');
         expando[element.widget] = true;
         _widgetRefMap[_generateKey(route)] = expando;
-        if(element is StatefulElement){
+        if (element is StatefulElement) {
           Expando expandoState = Expando('${element.state}');
           expando[element.state] = true;
           _stateRefMap[_generateKey(route)] = expandoState;
         }
       }
     });
-
   }
 
   ///check and analyze the route
   void _remove(Route route) {
     Element? element = _getElementByRoute(route);
     if (element != null) {
-        Future.delayed(Duration(seconds: _defaultCheckLeakDelay), () async {
-           LeaksTask(_widgetRefMap.remove(_generateKey(route))).checkLeak();
-           if(element is StatefulElement){
-             LeaksTask(_stateRefMap.remove(_generateKey(route))).checkLeak();
-           }
-        });
+      Future.delayed(Duration(seconds: _defaultCheckLeakDelay), () async {
+        LeaksTask(_widgetRefMap.remove(_generateKey(route)))
+            .checkLeak(tag: "widget leaks");
+        if (element is StatefulElement) {
+          LeaksTask(_stateRefMap.remove(_generateKey(route)))
+              .checkLeak(tag: "state leaks");
+        }
+      });
     }
   }
 
-  String _generateKey(Route route){
+  String _generateKey(Route route) {
     return '${route.hashCode}-${route.runtimeType}';
   }
 
