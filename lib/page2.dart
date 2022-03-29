@@ -10,7 +10,6 @@ final List _widgets = [];
 
 final List _elements = [];
 
-
 class Page2 extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
@@ -20,8 +19,6 @@ class Page2 extends StatefulWidget {
 }
 
 class _Page2State extends State<Page2> {
-
-
   @override
   void initState() {
     super.initState();
@@ -34,7 +31,6 @@ class _Page2State extends State<Page2> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
         title: Text('page2'),
       ),
       body: Center(

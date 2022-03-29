@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_leaks/leaks_manager.dart';
-import 'package:flutter_leaks/object_util.dart';
 import 'package:leak_demo/page1.dart';
 import 'package:leak_demo/page2.dart';
 import 'package:leak_detector/leak_detector.dart';
-
 import 'closure_page.dart';
 import 'const_page.dart';
 
@@ -25,11 +23,9 @@ main() {
       "closure": (BuildContext context) {
         return ClosurePage();
       },
-
       "const": (BuildContext context) {
         return const ConstPage();
       },
-
     },
     title: 'Expand',
     theme: ThemeData(
@@ -39,14 +35,12 @@ main() {
   ));
 }
 
-const int _defaultCheckLeakDelay = 30;
+const int _defaultCheckLeakDelay = 15;
 
 class LeakObserver extends NavigatorObserver {
   final ShouldAddedRoute? shouldCheck;
   final int checkLeakDelay;
 
-  ///[callback] if 'null',the all route can added to LeakDetector.
-  ///if not 'null', returns ‘true’, then this route will be added to the LeakDetector.
   LeakObserver(
       {this.checkLeakDelay = _defaultCheckLeakDelay, this.shouldCheck});
 
@@ -100,7 +94,7 @@ class LeakObserver extends NavigatorObserver {
   void _remove(Route route) {
     Element? element = _getElementByRoute(route);
     if (element != null) {
-      Future.delayed(Duration(seconds: _defaultCheckLeakDelay), () async {
+      Future.delayed(Duration(seconds: checkLeakDelay), () {
         LeaksTask(_widgetRefMap.remove(_generateKey(route)))
             .checkLeak(tag: "widget leaks");
         if (element is StatefulElement) {

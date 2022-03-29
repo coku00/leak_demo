@@ -83,7 +83,7 @@ class LeaksTask {
 
     for (int i = 0; i < weakPropertyKeys.length; i++) {
       InstanceRef instanceRef = weakPropertyKeys[i];
-      print('checkLeak instanceRef = $instanceRef');
+     // print('checkLeak instanceRef = $instanceRef');
       RetainingPath retainingPath = await getRetainingPath(instanceRef.id!);
       LeakNode? _leakInfoHead;
       LeakNode? pre;
@@ -93,7 +93,7 @@ class LeaksTask {
 
         LeakNode current = LeakNode();
         bool isConst = await _paresRef(p.value!, p.parentField, current);
-        print('checkLeak isConst = $isConst');
+      //  print('checkLeak isConst = $isConst');
         if (isConst) {
           break;
         }
@@ -112,6 +112,7 @@ class LeaksTask {
       if (_leakInfoHead != null) {
         leakNodes?.add(_leakInfoHead);
         LeaksManager()._onLeakedStreamController.add(_leakInfoHead);
+      //  print(_leakInfoHead);
       }
     }
 
@@ -156,7 +157,7 @@ Future<bool> _paresRef(
 
       Field field = await getObjectOfType(objRef.id!);
       leakNode.codeInfo = await _getFieldCode(field);
-
+      print('\n');
       return false;
     case FuncRef:
       FuncRef funcRef = objRef as FuncRef;
@@ -273,7 +274,8 @@ class LeakNode {
 
   @override
   String toString() {
-    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : 'codeInfo : ${codeInfo?.toString()}'}] ${next == null ? '' : '---> ${next?.toString()}'}';
+    return '''[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : 'codeInfo : ${codeInfo?.toString()}'}] 
+    ${next == null ? '' : '$parentField : ---> ${next?.toString()}'}''';
   }
 }
 

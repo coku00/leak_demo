@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:leak_demo/const_page.dart';
 import 'package:leak_demo/page2.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'closure_page.dart';
@@ -47,30 +48,38 @@ class _Page1State extends State<Page1> with WidgetsBindingObserver {
   }
 }
 
-
-class CustomWidget extends StatelessWidget{
+class CustomWidget extends StatelessWidget {
   final String routerName;
+
   CustomWidget(this.routerName);
+
   @override
   Widget build(BuildContext context) {
-   return Container(
-     color: Colors.yellow,
-     height: 40,
-     width: 100,
-     margin: EdgeInsets.only(top: 20,bottom: 20),
-     child: GestureDetector(
-       onTap: () {
-         Navigator.of(context).pushNamed(routerName);
-       },
-       child: Container(
-           color: Colors.yellow,
-           height: 40,
-           width: 100,
-           child: Center(
-             child: Text('go $routerName'),
-           )),
-     ),
-   );
+    return Container(
+      color: Colors.yellow,
+      height: 40,
+      width: 100,
+      margin: EdgeInsets.only(top: 20, bottom: 20),
+      child: GestureDetector(
+        onTap: () {
+          //
+          if ('const' == routerName) {
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (BuildContext context) {
+              return  ConstPage();
+            }));
+          } else {
+            Navigator.of(context).pushNamed(routerName);
+          }
+        },
+        child: Container(
+            color: Colors.yellow,
+            height: 40,
+            width: 100,
+            child: Center(
+              child: Text('go $routerName'),
+            )),
+      ),
+    );
   }
-
 }
