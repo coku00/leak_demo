@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:vm_service/vm_service.dart';
@@ -72,11 +73,11 @@ class LeaksTask {
 
     if (weakPropertyKeys.isNotEmpty) {
       print(
-          '${tag};checkLeak weakPropertyKeys.isNotEmpty length = ${weakPropertyKeys.length}');
+          '$tag ;checkLeak weakPropertyKeys.isNotEmpty length = ${weakPropertyKeys.length}');
 
       await gc();
+      sleep(Duration(seconds: 15));
 
-      await Future.delayed(Duration(seconds: 15), () {});
     }
 
     expando = null;
@@ -98,7 +99,7 @@ class LeaksTask {
           break;
         }
 
-        print('checkLeak p = ${p.toJson()}');
+     //   print('checkLeak p = ${p.toJson()}');
 
         if (_leakInfoHead == null) {
           _leakInfoHead = current;
@@ -112,7 +113,7 @@ class LeaksTask {
       if (_leakInfoHead != null) {
         leakNodes?.add(_leakInfoHead);
         LeaksManager()._onLeakedStreamController.add(_leakInfoHead);
-      //  print(_leakInfoHead);
+        print("$tag 泄漏信息 ${_leakInfoHead.toString()}");
       }
     }
 
@@ -120,6 +121,12 @@ class LeaksTask {
   }
 }
 
+
+///
+///
+/// const 不可回收，创建的地方引用链会出现 CodeRef
+///
+///
 Future<bool> _paresRef(
     ObjRef objRef, String? parentField, LeakNode leakNode) async {
   leakNode.parentField = parentField;
@@ -274,8 +281,7 @@ class LeakNode {
 
   @override
   String toString() {
-    return '''[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : 'codeInfo : ${codeInfo?.toString()}'}] 
-    ${next == null ? '' : '$parentField : ---> ${next?.toString()}'}''';
+    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]${next == null ? '' : '${parentField == null ? "":"$parentField : "} ---> ${next?.toString()}'}';
   }
 }
 

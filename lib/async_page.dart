@@ -1,26 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-class ConstPage extends StatefulWidget {
-  const ConstPage();
-
+class AsyncPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _ConstState();
+    return _AsyncState();
   }
 }
 
-class _ConstState extends State<ConstPage> {
+class _AsyncState extends State<AsyncPage> {
   @override
   void initState() {
     super.initState();
+    //模拟异步网络耗时
+    Future.delayed(Duration(seconds: 100),(){
+      _test();
+    });
+  }
+
+  void _test(){
+    print("_AsyncState");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ConstPage'),
+        title: Text('AsyncPage'),
       ),
       body: Center(
         child: GestureDetector(
@@ -29,7 +37,7 @@ class _ConstState extends State<ConstPage> {
             },
             child: Container(
               padding: EdgeInsets.all(50),
-              color: Colors.blue,
+              color: Colors.brown,
               child: Text('pop'),
             )),
       ),
@@ -37,3 +45,4 @@ class _ConstState extends State<ConstPage> {
     );
   }
 }
+

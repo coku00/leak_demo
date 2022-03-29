@@ -40,6 +40,7 @@ class _Page1State extends State<Page1> with WidgetsBindingObserver {
             CustomWidget('page2'),
             CustomWidget('closure'),
             CustomWidget('const'),
+            CustomWidget('async'),
           ],
         ),
       )),

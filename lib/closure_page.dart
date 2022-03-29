@@ -43,7 +43,7 @@ class _ClosureState extends State<ClosurePage> {
             },
             child: Container(
               padding: EdgeInsets.all(50),
-              color: Colors.red,
+              color: Colors.lightGreen,
               child: Text('pop'),
             )),
       ),
