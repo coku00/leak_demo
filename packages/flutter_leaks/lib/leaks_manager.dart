@@ -290,7 +290,13 @@ class LeakNode {
 
   @override
   String toString() {
-    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]${next == null ? '' : '${parentField == null ? "" : "  parentField : $parentField : "} ---> ${next?.toString()}'}';
+    String? parent;
+    if(parentField != null && parentField!.contains('@') ){
+      parent = parentField!.split('@')[0];
+    }else{
+      parent = parentField;
+    }
+    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]${next == null ? '' : '${parent == null ? "" : "  parentField : $parent : "} ---> ${next?.toString()}'}';
   }
 }
 
