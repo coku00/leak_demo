@@ -6,14 +6,24 @@ import 'expando_demo.dart';
 
 final List _states = [];
 
-final List _widgets = [];
+
 
 final List _elements = [];
+
+class SingleTon {
+
+  final List _leakWidgets = [];
+  static SingleTon _singleTon = SingleTon._();
+
+  factory SingleTon() => _singleTon;
+
+  SingleTon._();
+}
 
 class Page2 extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    _widgets.add(this);
+    SingleTon()._leakWidgets.add(this);
     return _Page2State();
   }
 }

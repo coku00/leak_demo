@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     Expando? expando = Expando();
     expando[Singleton().value] = true;
-    LeaksTask(expando).checkLeak();
+    LeakTask(expando).checkLeak();
     expando = null;
   }
 

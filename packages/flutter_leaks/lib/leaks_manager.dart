@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'code_display_service.dart';
-import 'leak_observer.dart';
+
 import 'log_util.dart';
 import 'object_util.dart';
 
@@ -58,10 +58,10 @@ class LeaksNavigatorObserver extends NavigatorObserver {
   }
 }
 
-class LeaksTask {
+class LeakTask {
   Expando? expando;
 
-  LeaksTask(this.expando);
+  LeakTask(this.expando);
 
   Future<List<LeakNode>?> checkLeak({String? tag}) async {
     List<LeakNode>? leakNodes;
@@ -98,14 +98,13 @@ class LeaksTask {
         RetainingObject p = retainingPath.elements![i];
 
         LeakNode current = LeakNode();
-        bool isConst = await _paresRef(p.value!, p.parentField, current);
-        //  print('checkLeak isConst = $isConst');
-        if (isConst) {
+
+        bool skip = await _paresRef(p.value!, p.parentField, current);
+
+        if (skip) {
           isBreak = true;
           break;
         }
-
-        //   print('checkLeak p = ${p.toJson()}');
 
         if (_leakInfoHead == null) {
           _leakInfoHead = current;
@@ -123,7 +122,7 @@ class LeaksTask {
       if (_leakInfoHead != null) {
         leakNodes?.add(_leakInfoHead);
         LeaksManager()._onLeakedStreamController.add(_leakInfoHead);
-        LogUtil.d("$tag 泄漏信息 ${_leakInfoHead.toString()}");
+        LogUtil.d("$tag 泄漏信息 \n${_leakInfoHead.toString()}");
       }
     }
 
@@ -144,6 +143,7 @@ Future<bool> _paresRef(
       ClassRef classRef = objRef as ClassRef;
       leakNode.id = classRef.id;
       leakNode.name = classRef.name;
+      leakNode.type = NodeType.CLASS;
       leakNode.isRoot = false;
       return false;
     case CodeRef:
@@ -151,6 +151,7 @@ Future<bool> _paresRef(
       leakNode.id = codeRef.id;
       leakNode.name = codeRef.name;
       leakNode.isRoot = false;
+      leakNode.type = NodeType.CODE;
       // Code d = await getObjectOfType(codeRef.id!);
       return true;
     case ContextRef:
@@ -163,6 +164,7 @@ Future<bool> _paresRef(
       ErrorRef errorRef = objRef as ErrorRef;
       leakNode.id = errorRef.id;
       leakNode.name = 'error';
+      leakNode.type = NodeType.ERROR;
       leakNode.isRoot = false;
       return true;
     case FieldRef:
@@ -170,7 +172,7 @@ Future<bool> _paresRef(
       leakNode.id = fieldRef.id;
       leakNode.name = fieldRef.name;
       leakNode.isRoot = fieldRef.isStatic ?? false;
-
+      leakNode.type = NodeType.FIELD;
       Field field = await getObjectOfType(objRef.id!);
       leakNode.codeInfo = await _getFieldCode(field);
       print('\n');
@@ -179,24 +181,28 @@ Future<bool> _paresRef(
       FuncRef funcRef = objRef as FuncRef;
       leakNode.id = funcRef.id;
       leakNode.name = funcRef.name;
+      leakNode.type = NodeType.FUNC;
       leakNode.isRoot = false;
       return false;
     case InstanceRef:
       InstanceRef instanceRef = objRef as InstanceRef;
       leakNode.id = instanceRef.id;
       leakNode.name = instanceRef.name ?? instanceRef.classRef?.name;
+      leakNode.type = NodeType.INSTANCE;
       leakNode.isRoot = false;
       return false;
     case ScriptRef:
       ScriptRef scriptRef = objRef as ScriptRef;
       leakNode.id = scriptRef.id;
       leakNode.name = "script";
+      leakNode.type = NodeType.SCRIPT;
       leakNode.isRoot = false;
       return false;
     case TypeArgumentsRef:
       TypeArgumentsRef typeArgumentsRef = objRef as TypeArgumentsRef;
       leakNode.id = typeArgumentsRef.id;
       leakNode.name = typeArgumentsRef.name;
+      leakNode.type = NodeType.ARGS;
       leakNode.isRoot = false;
       return false;
     default:
@@ -282,7 +288,7 @@ class LeakNode {
 
   String? name;
 
-  String? type;
+  NodeType? type;
 
   String? parentField;
 
@@ -291,12 +297,14 @@ class LeakNode {
   @override
   String toString() {
     String? parent;
-    if(parentField != null && parentField!.contains('@') ){
+    if (parentField != null && parentField!.contains('@')) {
       parent = parentField!.split('@')[0];
-    }else{
+    } else {
       parent = parentField;
     }
-    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]${next == null ? '' : '${parent == null ? "" : "  parentField : $parent : "} ---> ${next?.toString()}'}';
+    String empty = '';
+    return '${_formatName('[ ${type == NodeType.FIELD ? '${codeInfo?.uri}; GC Root Field -> $name' : 'name : $name'}${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]', type == NodeType.FIELD ? 200 : 50)} ${next == null ? '    ' : '${_formatName(parent == null ? empty : ' field -> ${parent}', 30)}    ↓    '
+        '\n${next?.toString()}'}';
   }
 }
 
@@ -310,8 +318,8 @@ Future<CodeInfo?> getCodeInfo(SourceLocation location) async {
         ?.substring(location.tokenPos!, location.endTokenPos)
         .split('\n')
         .first;
-    CodeInfo codeInfo = CodeInfo(line, column, codeLine);
-    print(codeInfo);
+    CodeInfo codeInfo = CodeInfo(line, column, codeLine, script.uri);
+
     return codeInfo;
   }
   return null;
@@ -320,7 +328,7 @@ Future<CodeInfo?> getCodeInfo(SourceLocation location) async {
 Future<CodeInfo?> _getFieldCode(Field field) async {
   if (field.location?.script?.id != null) {
     Script? script = await getObjectOfType(field.location!.script!.id!);
-
+    print(script);
     if (script != null && field.location?.tokenPos != null) {
       int? line = script.getLineNumberFromTokenPos(field.location!.tokenPos!);
       int? column =
@@ -331,7 +339,7 @@ Future<CodeInfo?> _getFieldCode(Field field) async {
           .split('\n')
           .first;
 
-      CodeInfo codeInfo = CodeInfo(line, column, codeLine);
+      CodeInfo codeInfo = CodeInfo(line, column, codeLine, script.uri);
       print(codeInfo);
       return codeInfo;
     }
@@ -343,11 +351,39 @@ class CodeInfo {
   int? line;
   int? column;
   String? codeLine;
+  String? uri;
 
-  CodeInfo(this.line, this.column, this.codeLine);
+  CodeInfo(this.line, this.column, this.codeLine, this.uri);
 
   @override
   String toString() {
     return 'line :$line; column :$column; codeLine :$codeLine';
   }
+}
+
+enum NodeType {
+  CLASS,
+  CONTEXT,
+  CODE,
+  FIELD,
+  ERROR,
+  FUNC,
+  INSTANCE,
+  SCRIPT,
+  ARGS,
+  UN_KNOW
+}
+
+String _formatName(String name, int len) {
+  StringBuffer sb = StringBuffer();
+
+  if (name.length > len) {
+    name = name.substring(0, len);
+  }
+  sb.write(name);
+  int fixLen = len - name.length;
+  for (var i = 0; i < fixLen; i++) {
+    sb.write(' ');
+  }
+  return sb.toString();
 }

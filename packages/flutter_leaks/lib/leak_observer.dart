@@ -64,10 +64,10 @@ class LeakObserver extends NavigatorObserver {
     if (element != null) {
       print("开始检测 ${element.widget}");
       Future.delayed(Duration(seconds: checkLeakDelay), () {
-        LeaksTask(_widgetRefMap.remove(_generateKey(route)))
+        LeakTask(_widgetRefMap.remove(_generateKey(route)))
             .checkLeak(tag: "widget leaks");
         if (element is StatefulElement) {
-          LeaksTask(_stateRefMap.remove(_generateKey(route)))
+          LeakTask(_stateRefMap.remove(_generateKey(route)))
               .checkLeak(tag: "state leaks");
         }
       });
