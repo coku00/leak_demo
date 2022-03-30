@@ -5,6 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'code_display_service.dart';
+import 'leak_observer.dart';
+import 'log_util.dart';
 import 'object_util.dart';
 
 class LeaksManager {
@@ -71,35 +73,39 @@ class LeaksTask {
 
     var weakPropertyKeys = await getWeakKeyRefs(expando!);
 
-    if (weakPropertyKeys.isNotEmpty) {
-      print(
-          '$tag ;checkLeak weakPropertyKeys.isNotEmpty length = ${weakPropertyKeys.length}');
-
-      await gc();
-      sleep(Duration(seconds: 15));
-
+    if (weakPropertyKeys.isEmpty) {
+      return null;
     }
 
+    print(
+        '$tag ;checkLeak weakPropertyKeys.isNotEmpty length = ${weakPropertyKeys.length}');
     expando = null;
+    await gc();
+    // sleep(Duration(seconds: defaultCheckLeakDelay));
 
     for (int i = 0; i < weakPropertyKeys.length; i++) {
       InstanceRef instanceRef = weakPropertyKeys[i];
-     // print('checkLeak instanceRef = $instanceRef');
+      if (instanceRef.id == 'objects/null') {
+        print('checkLeak instanceRef = $instanceRef');
+        break;
+      }
+
       RetainingPath retainingPath = await getRetainingPath(instanceRef.id!);
       LeakNode? _leakInfoHead;
       LeakNode? pre;
-
+      bool isBreak = false;
       for (var i = 0; i < retainingPath.elements!.length; i++) {
         RetainingObject p = retainingPath.elements![i];
 
         LeakNode current = LeakNode();
         bool isConst = await _paresRef(p.value!, p.parentField, current);
-      //  print('checkLeak isConst = $isConst');
+        //  print('checkLeak isConst = $isConst');
         if (isConst) {
+          isBreak = true;
           break;
         }
 
-     //   print('checkLeak p = ${p.toJson()}');
+        //   print('checkLeak p = ${p.toJson()}');
 
         if (_leakInfoHead == null) {
           _leakInfoHead = current;
@@ -110,17 +116,20 @@ class LeaksTask {
         }
       }
 
+      if (isBreak) {
+        break;
+      }
+
       if (_leakInfoHead != null) {
         leakNodes?.add(_leakInfoHead);
         LeaksManager()._onLeakedStreamController.add(_leakInfoHead);
-        print("$tag 泄漏信息 ${_leakInfoHead.toString()}");
+        LogUtil.d("$tag 泄漏信息 ${_leakInfoHead.toString()}");
       }
     }
 
     return leakNodes;
   }
 }
-
 
 ///
 ///
@@ -281,7 +290,7 @@ class LeakNode {
 
   @override
   String toString() {
-    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]${next == null ? '' : '${parentField == null ? "":"$parentField : "} ---> ${next?.toString()}'}';
+    return '[name : $name; id : $id; isRoot :$isRoot; ${codeInfo == null ? '' : '    【codeInfo : ${codeInfo?.toString()}】    '}]${next == null ? '' : '${parentField == null ? "" : "  parentField : $parentField : "} ---> ${next?.toString()}'}';
   }
 }
 

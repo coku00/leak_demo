@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import 'leaks_manager.dart';
 
-const int _defaultCheckLeakDelay = 15;
+const int defaultCheckLeakDelay = 15;
 
 typedef ShouldAddedRoute = bool Function(Route route);
 
@@ -11,7 +11,7 @@ class LeakObserver extends NavigatorObserver {
   final int checkLeakDelay;
 
   LeakObserver(
-      {this.checkLeakDelay = _defaultCheckLeakDelay, this.shouldCheck});
+      {this.checkLeakDelay = defaultCheckLeakDelay, this.shouldCheck});
 
   @override
   void didPop(Route route, Route? previousRoute) {

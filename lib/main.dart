@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_leaks/leaks_manager.dart';
-import 'package:flutter_leaks/object_util.dart';
-import 'package:flutter_leaks/service_util.dart';
-import 'package:vm_service/vm_service.dart';
+
 
 Future<void> main() async {
   runApp(MyApp());
@@ -16,7 +14,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      navigatorObservers: [],
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
