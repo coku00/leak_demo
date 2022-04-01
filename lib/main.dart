@@ -1,101 +1,47 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_leaks/leaks_manager.dart';
+import 'package:flutter/widgets.dart';
 
+import 'package:leak_demo/page1.dart';
+import 'package:leak_demo/page2.dart';
+import 'package:leak_demo/watch_object.dart';
 
-Future<void> main() async {
-  runApp(MyApp());
+import 'async_page.dart';
+import 'closure_page.dart';
+import 'const_page.dart';
+import 'package:flutter_leakcanary/flutter_leakcanary.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+main() {
+  runApp(MaterialApp(
+    navigatorKey: navigatorKey,
+    navigatorObservers: [LeakObserver()],
+    routes: <String, WidgetBuilder>{
+      "page1": (BuildContext context) {
+        return Page1();
+      },
+      "page2": (BuildContext context) {
+        return Page2();
+      },
+      "closure": (BuildContext context) {
+        return ClosurePage();
+      },
+      "const": (BuildContext context) {
+        return const ConstPage();
+      },
+      "async": (BuildContext context) {
+        return  AsyncPage();
+      },
+      'WatchObject':(_){
+        return WatchObjectPage();
+      }
+    },
+    title: 'Expand',
+    theme: ThemeData(
+      primarySwatch: Colors.blue,
+    ),
+    initialRoute: 'page1',
+  ));
 }
 
-class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  final data = [];
-
-  Future<void> _incrementCounter() async {
-    Singleton().value = Test(this);
-
-    Expando? expando = Expando();
-    expando[Singleton().value] = true;
-    LeakTask(expando).checkLeak();
-    expando = null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-}
-
-class Singleton {
-  static final Singleton _singleton = Singleton._();
-
-  factory Singleton() => _singleton;
-
-  Singleton._();
-
-  dynamic value;
-}
-
-class Test {
-  dynamic obj;
-
-  Test(this.obj);
-}
 

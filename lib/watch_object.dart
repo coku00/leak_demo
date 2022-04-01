@@ -1,29 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_leakcanary/flutter_leakcanary.dart';
 
-class ConstPage extends StatefulWidget {
-  const ConstPage();
-
+class WatchObjectPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _ConstState();
+    return _WatchObjectState();
   }
 }
 
+_TestObject? _object;
 
+class _WatchObjectState extends State<WatchObjectPage> {
+  LeakWatcher? watcher;
 
-class _ConstState extends State<ConstPage> {
   @override
   void initState() {
     super.initState();
-
+    _object = _TestObject();
+    watcher = LeakObject().leakObject(_object!);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ConstPage'),
+        title: Text('WatchObject'),
       ),
       body: Center(
         child: GestureDetector(
@@ -32,11 +34,19 @@ class _ConstState extends State<ConstPage> {
             },
             child: Container(
               padding: EdgeInsets.all(50),
-              color: Colors.blue,
+              color: Colors.orange,
               child: Text('pop'),
             )),
       ),
       // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  @override
+  void dispose() {
+    super.dispose();
+    watcher?.start();
+  }
 }
+
+class _TestObject {}
