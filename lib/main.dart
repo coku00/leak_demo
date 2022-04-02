@@ -1,10 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
 import 'package:leak_demo/page1.dart';
 import 'package:leak_demo/page2.dart';
 import 'package:leak_demo/watch_object.dart';
-
 import 'async_page.dart';
 import 'closure_page.dart';
 import 'const_page.dart';
@@ -15,7 +14,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 main() {
   runApp(MaterialApp(
     navigatorKey: navigatorKey,
-    navigatorObservers: [LeakObserver()],
+    navigatorObservers: [LeakObserver(navigatorKey: navigatorKey)],
     routes: <String, WidgetBuilder>{
       "page1": (BuildContext context) {
         return Page1();
@@ -30,9 +29,9 @@ main() {
         return const ConstPage();
       },
       "async": (BuildContext context) {
-        return  AsyncPage();
+        return AsyncPage();
       },
-      'WatchObject':(_){
+      'WatchObject': (_) {
         return WatchObjectPage();
       }
     },
@@ -43,5 +42,3 @@ main() {
     initialRoute: 'page1',
   ));
 }
-
-

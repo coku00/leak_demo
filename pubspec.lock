@@ -65,11 +65,9 @@ packages:
   flutter_leakcanary:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "0c18b1c9d5c63a32c3a86283beaa126de420b15d"
-      url: "https://github.com/coku00/flutter_leakcanary.git"
-    source: git
+      path: "../flutter_leakcanary"
+      relative: true
+    source: path
     version: "0.0.1"
   flutter_test:
     dependency: "direct dev"
